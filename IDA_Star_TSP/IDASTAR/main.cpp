@@ -49,11 +49,13 @@ bool DoesElementExist(std::vector<SearchNode> vector, int data)
 
 int h1(vector<SearchNode> visited, vector<int> unvisited, int actions[NumberOfCities][NumberOfCities], int startNode)
 {
-	if (unvisited.size() == 0)
-		return 0;
 	int h1 = 0;
 	int f = 0, t = 0;
 	int shortestConnection = INT_MAX;
+	if (unvisited.size() == 0)
+	{
+		return actions[visited[visited.size() - 1].cityID][startNode];
+	}
 	//look for shortest way to connect visited cities with unvisited ones
 	for (size_t i = 0; i < visited.size(); i++)
 	{
@@ -75,11 +77,18 @@ int h1(vector<SearchNode> visited, vector<int> unvisited, int actions[NumberOfCi
 	cout << "Connection from visited to unvisited = " << shortestConnection << " from " << cities[f]<< " to " << cities[t] << endl;
 	h1 = shortestConnection;
 	f = 0; t = 0;
+	int shortestWayOut = INT_MAX;
 	//now lets find cheapest action that take us from every unvisited node to another unvisited node or to the start node
+	if (unvisited.size() == 0)
+	{
+		shortestWayOut = actions[visited[visited.size()-1].cityID][startNode];
+	}
 	for (size_t i = 0; i < unvisited.size(); i++)
 	{
-		int shortestWayOut = INT_MAX;
+		shortestWayOut = INT_MAX;
 		int from = unvisited[i];
+		
+
 		for (size_t j = 0; j < unvisited.size(); j++)
 		{
 			int to = unvisited[j];
@@ -91,18 +100,21 @@ int h1(vector<SearchNode> visited, vector<int> unvisited, int actions[NumberOfCi
 					f = from;
 					t = to;
 				}
-				//we additionaly need to check way to start node
-				if (j == unvisited.size() - 1)
+
+			}
+			//we additionaly need to check way to start node
+			if (j == unvisited.size() - 1)
+			{
+				if (actions[from][startNode] < shortestWayOut)
 				{
-					if (actions[from][startNode] < shortestWayOut)
-					{
-						shortestWayOut = actions[from][startNode];
-						f = from;
-						t = startNode;
-					}
+					shortestWayOut = actions[from][startNode];
+					f = from;
+					t = startNode;
 				}
 			}
 		}
+
+
 		if (f != t)
 		{
 			h1 += shortestWayOut;
@@ -167,7 +179,7 @@ int main()
 				DepthFirstTravelsalStack.push(SearchNode(i, current.cityID));
 			}
 		}
-
+		int g=0;
 		//this is just a debug.
 		if (true)//visited.size() == NumberOfCities)
 		{
@@ -177,7 +189,8 @@ int main()
 				cout << cities[visited[i].cityID] << " -> ";
 				length += actions[visited[i].parentCityID][visited[i].cityID];
 			}
-			cout <<"Warszawa\t\t Length = " << length + actions[visited[visited.size() - 1].cityID][start];
+			cout <<"Warszawa\t\t Length = " << length /*+ actions[visited[visited.size() - 1].cityID][start]*/;
+			g = length;
 			cout << "\nUNVISITED : ";
 			for (size_t i = 0; i < unvisitedCities.size(); i++)
 			{
@@ -185,8 +198,8 @@ int main()
 			}
 			cout << endl;
 		}
-	
-		cout << "H1 = " << h1(visited, unvisitedCities, actions, start) << endl;
+		int hone = h1(visited, unvisitedCities, actions, start);
+		cout << "H1 = " << hone << " \tG+H = " << hone + g << endl;
 
 		
 	}
