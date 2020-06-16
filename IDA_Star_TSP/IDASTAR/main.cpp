@@ -4,16 +4,18 @@
 #include <vector>
 #include <climits>
 #include <stack>
+#include <sstream>
+#include <iterator>
 
 using namespace std;
-vector<string> cities = { "Warszawa", "Lodz", "Katowice", "Krakow", "Lublin","Kielce" };
+vector<string> cities;
 const int WWA = 0;
 const int LDZ = 1;
 const int KAT = 2;
 const int KRK = 3;
 const int LBN = 4;
 const int KIE = 5;
-const int NumberOfCities = 6;
+int NumberOfCities = 6;
 
 class SearchNode
 {
@@ -48,14 +50,14 @@ bool DoesElementExist(std::vector<SearchNode> vector, int data)
 }
 
 
-int h1(vector<SearchNode> visited, vector<int> unvisited, int actions[NumberOfCities][NumberOfCities], int startNode)
+int h1(vector<SearchNode> visited, vector<int> unvisited, int **actions, int startNode)
 {
 	if (unvisited.size() == 0)
 	{
 		return actions[visited[visited.size() - 1].cityID][startNode];
 	}
 	int h1 = 0;
-	int f = 0, t = 0;
+	
 	int shortestConnection = INT_MAX;
 	int shortestWayOut = INT_MAX;
 
@@ -71,16 +73,16 @@ int h1(vector<SearchNode> visited, vector<int> unvisited, int actions[NumberOfCi
 				if (actions[from][to]<shortestConnection)
 				{
 					shortestConnection = actions[from][to];
-					f = from;
-					t = to;
 				}
 			}
 		}
 	}
 
-	//cout << "Connection from visited to unvisited = " << shortestConnection << " from " << cities[f]<< " to " << cities[t] << endl;
 	h1 = shortestConnection;
-	
+
+	//cities that will be added to heuristic
+	int f = 0, t = 0;
+
 	for (size_t i = 0; i < unvisited.size(); i++)
 	{
 		shortestWayOut = INT_MAX;
@@ -112,13 +114,12 @@ int h1(vector<SearchNode> visited, vector<int> unvisited, int actions[NumberOfCi
 		if (f != t)
 		{
 			h1 += shortestWayOut;
-			//cout << "Shortest way out from " << cities[f] << " to  " << cities[t] << "  costs " << shortestWayOut << endl;
 		}
 	}
 	return h1;
 }
 
-int MST(vector<int> unvisited, int actions[NumberOfCities][NumberOfCities])
+int MST(vector<int> unvisited, int **actions)
 {
 	int mstLength = 0;
 	vector<int> visited;
@@ -154,10 +155,8 @@ int MST(vector<int> unvisited, int actions[NumberOfCities][NumberOfCities])
 				}
 			}
 		}
-//		cout << "We choose edge (" << cities[f] << ", " << cities[t] << ") that costs " << actions[f][t] << endl;
 		edges.push_back(SearchNode(f, t));
 		mstLength += shortestConnection;
-//		cout << "Mst = " << mstLength << endl;
 		visited.push_back(t);
 		for (std::vector<int>::iterator i = unvisited.begin(); i < unvisited.end(); i++)
 		{
@@ -171,7 +170,7 @@ int MST(vector<int> unvisited, int actions[NumberOfCities][NumberOfCities])
 	return mstLength;
 }
 
-int h2(vector<SearchNode> visited, vector<int> unvisited, int actions[NumberOfCities][NumberOfCities], int startNode)
+int h2(vector<SearchNode> visited, vector<int> unvisited, int **actions, int startNode)
 {
 	if (unvisited.size() == 0)
 	{
@@ -199,20 +198,74 @@ int h2(vector<SearchNode> visited, vector<int> unvisited, int actions[NumberOfCi
 	return h2;
 }
 
+vector<SearchNode> IDAStarSolver(int **actions)
+{
+
+	return vector<SearchNode>();
+}
+
+
+std::vector<int> split(string&s, char delimiter)
+{
+	vector<int> tokens;
+	string token;
+	istringstream tokenStream(s);
+	while (getline(tokenStream, token, delimiter))
+	{
+		istringstream ss(token);
+		int x;
+		ss >> x;
+		tokens.push_back(x);
+	}
+	return tokens;
+}
+
+void ParseData(string dataFile,int **actions)
+{
+	ifstream dataStream;
+	dataStream.open(dataFile);
+	if (!dataStream)
+	{
+		cout << "Bad file\n";
+	}
+	string line;
+	getline(dataStream, line);
+	istringstream ss(line);
+	ss >> NumberOfCities;
+	cout << NumberOfCities;
+
+
+	getline(dataStream, line);
+	ss = istringstream(line);
+	cities.clear();
+	string city;
+	while (getline(ss, city, ';'))
+	{
+		cities.push_back(city);
+	}
+
+	cout << endl;
+	int index = 0;
+	while (getline(dataStream, line, ';'))
+	{
+		istringstream ss(line);
+		int x;
+		ss >> x;
+		actions[index / NumberOfCities][index % NumberOfCities] = x;
+		index++;
+	}
+}
+
 int main()
 {
 	stack<SearchNode> DepthFirstTravelsalStack;
-	//  0-Warszawa , 1-Lodz, 2-Katowice , 3-Krakow, 4-Lublin, 5-Kielce 
-	int actions[NumberOfCities][NumberOfCities] =
+	int ** actions = new int*[NumberOfCities];
+	for (size_t i = 0; i < NumberOfCities; i++)
 	{
-		{0, 135, 300, 300, 165, 180},
-		{135, 0, 195, 270, 310, 140},
-		{300, 195, 0, 75, 305, 180},
-		{300, 270, 75, 0, 260, 120 },
-		{165, 310, 305, 260, 0, 175},
-		{180, 140, 180, 120, 175, 0}
-	};
+		actions[i] = new int[NumberOfCities];
+	}
 
+	ParseData("Data/zwykladu.txt", actions);
 
 	int start = WWA;
 	DepthFirstTravelsalStack.push(SearchNode(start, start));
@@ -221,18 +274,18 @@ int main()
 
 	while (!DepthFirstTravelsalStack.empty())
 	{
-		//get new from stack
+		//get new city from stack
 		SearchNode current = DepthFirstTravelsalStack.top();
-		DepthFirstTravelsalStack.pop();		
+		DepthFirstTravelsalStack.pop();
 
 		//check whether we make a return to some previous node in naive in depth search and make sure visited nodes are handled properly
 		while (visited.size() >= 1 && current.parentCityID != visited[visited.size() - 1].cityID)
 		{
-			int erased = visited[visited.size()-1].cityID;
+			int erased = visited[visited.size() - 1].cityID;
 			visited.pop_back();
 			unvisitedCities.push_back(erased);
 		}
-		
+
 		//put new node on visited list
 		visited.push_back(current);
 		for (std::vector<int>::iterator i = unvisitedCities.begin(); i < unvisitedCities.end(); i++)
@@ -243,6 +296,22 @@ int main()
 				break;
 			}
 		}
+		//calculate cost of current node
+		int f = 0;
+		int g = 0;
+
+		for (size_t i = 0; i < visited.size(); i++)
+		{
+			cout << cities[visited[i].cityID] << " -> ";
+			g += actions[visited[i].parentCityID][visited[i].cityID];
+		}
+		cout << endl;
+
+		int hone = h1(visited, unvisitedCities, actions, start);
+		int htwo = h2(visited, unvisitedCities, actions, start);
+	
+		cout << "H1 = " << hone << " \tG+H1 = " << hone + g << endl;
+		cout << "H2 = " << htwo << " \tG+H2 = " << htwo + g << endl;
 
 		//add childs of current onto stack so we can visit them later.
 		for (int i = NumberOfCities - 1; i >= 0; i--)
@@ -252,31 +321,15 @@ int main()
 				DepthFirstTravelsalStack.push(SearchNode(i, current.cityID));
 			}
 		}
-		int g = 0;
-		//this is just a debug.
-		if (true)//visited.size() == NumberOfCities)
-		{
-			int length = 0;
-			for (size_t i = 0; i < visited.size(); i++)
-			{
-				cout << cities[visited[i].cityID] << " -> ";
-				length += actions[visited[i].parentCityID][visited[i].cityID];
-			}
-			cout <</*"Warszawa*/"\t\t Length = " << length /*+ actions[visited[visited.size() - 1].cityID][start]*/;
-			g = length;
-			cout << "\nUNVISITED : ";
-			for (size_t i = 0; i < unvisitedCities.size(); i++)
-			{
-				cout << cities[unvisitedCities[i]] << ", ";
-			}
-			cout << endl;
-		}
-		int hone = h1(visited, unvisitedCities, actions, start);
-		int htwo = h2(visited, unvisitedCities, actions, start);
-		cout << "H1 = " << hone << " \tG+H = " << hone + g << endl;
-		cout << "H2 = " << htwo << " \tG+H = " << htwo + g << endl;
 
-		
 	}
+
+	//cleaning memory that was allocated for action matrix;
+	for (size_t i = 0; i < NumberOfCities; i++)
+	{
+		delete[] actions[i];
+	}
+	delete[] actions;
+
 	return 0;
 }
