@@ -3,12 +3,11 @@
 #include <string>
 
  
-class Node;
-
 
 class InputParser
 {
 public:
-	static void Parse(std::string filename, std::vector<Node>& nodes);
+	static void ParseData(const std::string dataFile, std::vector<std::vector<int>>& actions, std::vector<std::string>& cities, size_t* NumberOfCities);
+	
 };
 

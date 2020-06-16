@@ -1,47 +1,24 @@
 #include <iostream>
-#include <fstream>
 #include <string>
 #include <vector>
 #include <climits>
 #include <stack>
-#include <sstream>
-#include <iterator>
+
+#include "InputParser.h"
+#include "SearchNode.h"
+
 
 using namespace std;
 vector<string> cities;
-const int WWA = 0;
-const int LDZ = 1;
-const int KAT = 2;
-const int KRK = 3;
-const int LBN = 4;
-const int KIE = 5;
-int NumberOfCities = 6;
+size_t NumberOfCities;
+bool IsLoggingEnabled = false;
 
-class SearchNode
-{
-public:
-	SearchNode(int ID, int parentID)
-	{
-		cityID = ID;
-		parentCityID = parentID;
-	}
-	bool Equals(SearchNode other)
-	{
-		return cityID == other.cityID;
-	}
-	bool Equals(int otherID)
-	{
-		return cityID == otherID;
-	}
-	int cityID;
-	int parentCityID;
-};
 
-bool DoesElementExist(std::vector<SearchNode> vector, int data)
+bool DoesVectorContainElement(std::vector<SearchNode> vector, int element)
 {
 	for (std::vector<SearchNode>::iterator i = vector.begin(); i < vector.end(); i++)
 	{
-		if ((*i).cityID==data)
+		if ((*i).cityID==element)
 		{
 			return true;
 		}
@@ -49,8 +26,7 @@ bool DoesElementExist(std::vector<SearchNode> vector, int data)
 	return false;
 }
 
-
-int h1(vector<SearchNode> visited, vector<int> unvisited, int **actions, int startNode)
+int CalculateShortestExitsHeuristic(vector<SearchNode> visited, vector<int> unvisited, const vector<vector<int>>& actions, int startNode)
 {
 	if (unvisited.size() == 0)
 	{
@@ -119,7 +95,7 @@ int h1(vector<SearchNode> visited, vector<int> unvisited, int **actions, int sta
 	return h1;
 }
 
-int MST(vector<int> unvisited, int **actions)
+int CalculateMinimalSpanningTreeLength(vector<int> unvisited, const vector<vector<int>>& actions)
 {
 	int mstLength = 0;
 	vector<int> visited;
@@ -170,13 +146,13 @@ int MST(vector<int> unvisited, int **actions)
 	return mstLength;
 }
 
-int h2(vector<SearchNode> visited, vector<int> unvisited, int **actions, int startNode)
+int CalculateMinimalSpaningTreeHeuristics(vector<SearchNode> visited, vector<int> unvisited, const vector<vector<int>>& actions, int startNode)
 {
 	if (unvisited.size() == 0)
 	{
 		return actions[visited[visited.size() - 1].cityID][startNode];
 	}
-	int h2 = MST(unvisited, actions);
+	int h2 = CalculateMinimalSpanningTreeLength(unvisited, actions);
 	int smallestEntryToStartNode = INT_MAX;
 	int smallestExitFromLastlyVisied = INT_MAX;
 	int lastlyVisited = visited[visited.size() - 1].cityID;
@@ -198,80 +174,32 @@ int h2(vector<SearchNode> visited, vector<int> unvisited, int **actions, int sta
 	return h2;
 }
 
-vector<SearchNode> IDAStarSolver(int **actions)
+int CalculatePathCost(const vector<SearchNode>&visited, const vector<vector<int>>& actions)
 {
-
-	return vector<SearchNode>();
+	int g = 0;
+	for (size_t i = 0; i < visited.size(); i++)
+	{
+		if (IsLoggingEnabled)
+			cout << cities[visited[i].cityID] << " -> ";
+		
+		g += actions[visited[i].parentCityID][visited[i].cityID];
+	}
+	if (IsLoggingEnabled)
+		cout << endl;
+	return g;
 }
 
-
-std::vector<int> split(string&s, char delimiter)
-{
-	vector<int> tokens;
-	string token;
-	istringstream tokenStream(s);
-	while (getline(tokenStream, token, delimiter))
-	{
-		istringstream ss(token);
-		int x;
-		ss >> x;
-		tokens.push_back(x);
-	}
-	return tokens;
-}
-
-void ParseData(string dataFile,int **actions)
-{
-	ifstream dataStream;
-	dataStream.open(dataFile);
-	if (!dataStream)
-	{
-		cout << "Bad file\n";
-	}
-	string line;
-	getline(dataStream, line);
-	istringstream ss(line);
-	ss >> NumberOfCities;
-	cout << NumberOfCities;
-
-
-	getline(dataStream, line);
-	ss = istringstream(line);
-	cities.clear();
-	string city;
-	while (getline(ss, city, ';'))
-	{
-		cities.push_back(city);
-	}
-
-	cout << endl;
-	int index = 0;
-	while (getline(dataStream, line, ';'))
-	{
-		istringstream ss(line);
-		int x;
-		ss >> x;
-		actions[index / NumberOfCities][index % NumberOfCities] = x;
-		index++;
-	}
-}
-
-int main()
+vector<SearchNode> IDAStarSolver(const vector<vector<int>>& actions,int CalculateHeuristic(vector<SearchNode> visited, vector<int> unvisited, const vector<vector<int>>& actions, int startNode))
 {
 	stack<SearchNode> DepthFirstTravelsalStack;
-	int ** actions = new int*[NumberOfCities];
-	for (size_t i = 0; i < NumberOfCities; i++)
-	{
-		actions[i] = new int[NumberOfCities];
-	}
-
-	ParseData("Data/zwykladu.txt", actions);
-
-	int start = WWA;
+	const int start = 0;
 	DepthFirstTravelsalStack.push(SearchNode(start, start));
 	vector<SearchNode> visited;
-	vector<int> unvisitedCities = { 0,1,2,3,4,5 };
-
+	vector<int> unvisitedCities;
+	for (size_t i = 0; i < NumberOfCities; i++)
+	{
+		unvisitedCities.push_back(i);
+	}
 	while (!DepthFirstTravelsalStack.empty())
 	{
 		//get new city from stack
@@ -298,38 +226,39 @@ int main()
 		}
 		//calculate cost of current node
 		int f = 0;
-		int g = 0;
+		int g = CalculatePathCost(visited, actions);
+		int h = CalculateHeuristic(visited, unvisitedCities, actions, start);
 
-		for (size_t i = 0; i < visited.size(); i++)
-		{
-			cout << cities[visited[i].cityID] << " -> ";
-			g += actions[visited[i].parentCityID][visited[i].cityID];
-		}
-		cout << endl;
-
-		int hone = h1(visited, unvisitedCities, actions, start);
-		int htwo = h2(visited, unvisitedCities, actions, start);
-	
-		cout << "H1 = " << hone << " \tG+H1 = " << hone + g << endl;
-		cout << "H2 = " << htwo << " \tG+H2 = " << htwo + g << endl;
+		if (IsLoggingEnabled)
+			cout << "H = " << h << "\tG = " << g << " \tG+H1 = " << h + g << endl;
 
 		//add childs of current onto stack so we can visit them later.
 		for (int i = NumberOfCities - 1; i >= 0; i--)
 		{
-			if (!DoesElementExist(visited, i) && actions[current.cityID][i] < INT_MAX)
+			if (!DoesVectorContainElement(visited, i) && actions[current.cityID][i] < INT_MAX)
 			{
 				DepthFirstTravelsalStack.push(SearchNode(i, current.cityID));
 			}
 		}
-
 	}
+	int lastCity = visited[visited.size() - 1].cityID;
+	visited.push_back(SearchNode(lastCity, start));
 
-	//cleaning memory that was allocated for action matrix;
-	for (size_t i = 0; i < NumberOfCities; i++)
-	{
-		delete[] actions[i];
-	}
-	delete[] actions;
+	return visited;
+}
 
+
+int main()
+{
+	vector<vector<int>> actions;
+
+	string s = "Data/zwykladu.txt";
+
+	InputParser::ParseData(s, actions, cities, &NumberOfCities);
+
+	std::vector<SearchNode> foundCycle = IDAStarSolver(actions, CalculateMinimalSpaningTreeHeuristics);
+
+	cout << CalculatePathCost(foundCycle, actions);
+	
 	return 0;
 }

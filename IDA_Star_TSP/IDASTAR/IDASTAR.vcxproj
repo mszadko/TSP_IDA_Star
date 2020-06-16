@@ -125,9 +125,11 @@
   <ItemGroup>
     <ClCompile Include="InputParser.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="SearchNode.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="InputParser.h" />
+    <ClInclude Include="SearchNode.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
