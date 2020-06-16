@@ -194,6 +194,7 @@ int CalculatePathCost(const vector<SearchNode>&visited, const vector<vector<int>
 
 vector<SearchNode> IDAStarSolver(const vector<vector<int>>& actions,int CalculateHeuristic(vector<SearchNode> visited, vector<int> unvisited, const vector<vector<int>>& actions, int startNode))
 {
+	//data needed for IDA* algorithm
 	bool AlreadyCalculatedFBoundZero = false;
 	stack<SearchNode> DepthFirstTravelsalStack;
 	const int start = 0;
@@ -202,8 +203,12 @@ vector<SearchNode> IDAStarSolver(const vector<vector<int>>& actions,int Calculat
 	vector<SearchNode> visited;
 	vector<int> unvisitedCities;
 
-	while (true)
+	while (visited.size() != NumberOfCities)
 	{
+		//statistics
+		int depth = 0;
+		int numberOfNodes = 0;
+
 		DepthFirstTravelsalStack = stack<SearchNode>();
 		DepthFirstTravelsalStack.push(SearchNode(start, start));
 		visited = vector<SearchNode>();
@@ -218,8 +223,10 @@ vector<SearchNode> IDAStarSolver(const vector<vector<int>>& actions,int Calculat
 
 		while (!DepthFirstTravelsalStack.empty())
 		{
+
 			//get new city from stack
 			SearchNode current = DepthFirstTravelsalStack.top();
+			numberOfNodes++;
 			DepthFirstTravelsalStack.pop();
 
 			//check whether we make a return to some previous node in naive in depth search and make sure visited nodes are handled properly
@@ -232,12 +239,13 @@ vector<SearchNode> IDAStarSolver(const vector<vector<int>>& actions,int Calculat
 
 			//put new node on visited list
 			visited.push_back(current);
-
+			if (visited.size() > depth)
+			{
+				depth = visited.size();
+			}
 			if (visited.size()==NumberOfCities)
 			{
-				int lastCity = visited[visited.size() - 1].cityID;
-				visited.push_back(SearchNode(start, lastCity));
-				return visited;
+				break;//we got a solution;
 			}
 
 			for (std::vector<int>::iterator i = unvisitedCities.begin(); i < unvisitedCities.end(); i++)
@@ -265,7 +273,7 @@ vector<SearchNode> IDAStarSolver(const vector<vector<int>>& actions,int Calculat
 				}
 			}
 			if (IsLoggingEnabled)
-				cout << "H = " << h << "\tG = " << g << " \tG+H1 = " << f << endl;
+				cout << "H = " << h << "\tG = " << g << " \tG+H = " << f << endl;
 			if (f > fBound&&f < fBoundNextCandidate)
 			{
 				fBoundNextCandidate = f;
@@ -285,11 +293,11 @@ vector<SearchNode> IDAStarSolver(const vector<vector<int>>& actions,int Calculat
 		fBound = fBoundNextCandidate;
 		fBoundNextCandidate = INT_MAX;
 		if (IsLoggingEnabled)
-			cout << "\n\n\nNext fbound = " << fBound << endl;
+			cout << "\n\n\nEnd of iteration - Next fbound = " << fBound << "\tnumber of searched nodes = " << numberOfNodes << "\tTree depth reached = " << depth << endl;
 	}
 
 	int lastCity = visited[visited.size() - 1].cityID;
-	visited.push_back(SearchNode(lastCity, start));
+	visited.push_back(SearchNode(start, lastCity));
 	return visited;
 }
 
