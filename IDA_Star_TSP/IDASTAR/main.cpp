@@ -11,7 +11,7 @@
 using namespace std;
 vector<string> cities;
 size_t NumberOfCities;
-bool IsLoggingEnabled = false;
+bool IsLoggingEnabled = true;
 
 
 bool DoesVectorContainElement(std::vector<SearchNode> vector, int element)
@@ -177,73 +177,119 @@ int CalculateMinimalSpaningTreeHeuristics(vector<SearchNode> visited, vector<int
 int CalculatePathCost(const vector<SearchNode>&visited, const vector<vector<int>>& actions)
 {
 	int g = 0;
-	for (size_t i = 0; i < visited.size(); i++)
+	for (size_t i = 1; i < visited.size(); i++)
 	{
+		int currentEdgeCost = actions[visited[i].parentCityID][visited[i].cityID];
+		g += currentEdgeCost;
 		if (IsLoggingEnabled)
-			cout << cities[visited[i].cityID] << " -> ";
-		
-		g += actions[visited[i].parentCityID][visited[i].cityID];
+			cout << cities[visited[i-1].cityID] << "---" << currentEdgeCost << "-->";
 	}
 	if (IsLoggingEnabled)
+	{
+		cout << cities[visited[visited.size() - 1].cityID];
 		cout << endl;
+	}		
 	return g;
 }
 
 vector<SearchNode> IDAStarSolver(const vector<vector<int>>& actions,int CalculateHeuristic(vector<SearchNode> visited, vector<int> unvisited, const vector<vector<int>>& actions, int startNode))
 {
+	bool AlreadyCalculatedFBoundZero = false;
 	stack<SearchNode> DepthFirstTravelsalStack;
 	const int start = 0;
-	DepthFirstTravelsalStack.push(SearchNode(start, start));
+	int fBound = 0;
+	int fBoundNextCandidate = INT_MAX;
 	vector<SearchNode> visited;
 	vector<int> unvisitedCities;
-	for (size_t i = 0; i < NumberOfCities; i++)
-	{
-		unvisitedCities.push_back(i);
-	}
-	while (!DepthFirstTravelsalStack.empty())
-	{
-		//get new city from stack
-		SearchNode current = DepthFirstTravelsalStack.top();
-		DepthFirstTravelsalStack.pop();
 
-		//check whether we make a return to some previous node in naive in depth search and make sure visited nodes are handled properly
-		while (visited.size() >= 1 && current.parentCityID != visited[visited.size() - 1].cityID)
+	while (true)
+	{
+		DepthFirstTravelsalStack = stack<SearchNode>();
+		DepthFirstTravelsalStack.push(SearchNode(start, start));
+		visited = vector<SearchNode>();
+		unvisitedCities = vector<int>();
+		for (size_t i = 0; i < NumberOfCities; i++)
 		{
-			int erased = visited[visited.size() - 1].cityID;
-			visited.pop_back();
-			unvisitedCities.push_back(erased);
-		}
-
-		//put new node on visited list
-		visited.push_back(current);
-		for (std::vector<int>::iterator i = unvisitedCities.begin(); i < unvisitedCities.end(); i++)
-		{
-			if (*i == current.cityID)
+			if (i!=start)
 			{
-				unvisitedCities.erase(i);
-				break;
+				unvisitedCities.push_back(i);
 			}
 		}
-		//calculate cost of current node
-		int f = 0;
-		int g = CalculatePathCost(visited, actions);
-		int h = CalculateHeuristic(visited, unvisitedCities, actions, start);
 
+		while (!DepthFirstTravelsalStack.empty())
+		{
+			//get new city from stack
+			SearchNode current = DepthFirstTravelsalStack.top();
+			DepthFirstTravelsalStack.pop();
+
+			//check whether we make a return to some previous node in naive in depth search and make sure visited nodes are handled properly
+			while (visited.size() >= 1 && current.parentCityID != visited[visited.size() - 1].cityID)
+			{
+				int erased = visited[visited.size() - 1].cityID;
+				visited.pop_back();
+				unvisitedCities.push_back(erased);
+			}
+
+			//put new node on visited list
+			visited.push_back(current);
+
+			if (visited.size()==NumberOfCities)
+			{
+				int lastCity = visited[visited.size() - 1].cityID;
+				visited.push_back(SearchNode(start, lastCity));
+				return visited;
+			}
+
+			for (std::vector<int>::iterator i = unvisitedCities.begin(); i < unvisitedCities.end(); i++)
+			{
+				if (*i == current.cityID)
+				{
+					unvisitedCities.erase(i);
+					break;
+				}
+			}
+
+			//calculate cost of current node
+			int f = 0;
+			int g = CalculatePathCost(visited, actions);
+			int h = CalculateHeuristic(visited, unvisitedCities, actions, start);
+			f = g + h;
+			if (!AlreadyCalculatedFBoundZero)
+			{
+				AlreadyCalculatedFBoundZero = true;
+				fBound = f;
+				fBoundNextCandidate = INT_MAX;
+				if (IsLoggingEnabled)
+				{
+					cout << "First F bound = " << fBound << endl;
+				}
+			}
+			if (IsLoggingEnabled)
+				cout << "H = " << h << "\tG = " << g << " \tG+H1 = " << f << endl;
+			if (f > fBound&&f < fBoundNextCandidate)
+			{
+				fBoundNextCandidate = f;
+			}
+			if (f <= fBound)
+			{
+				//add childs of current onto stack so we can visit them later.
+				for (int i = NumberOfCities - 1; i >= 0; i--)
+				{
+					if (!DoesVectorContainElement(visited, i) && actions[current.cityID][i] < INT_MAX)
+					{
+						DepthFirstTravelsalStack.push(SearchNode(i, current.cityID));
+					}
+				}
+			}
+		}
+		fBound = fBoundNextCandidate;
+		fBoundNextCandidate = INT_MAX;
 		if (IsLoggingEnabled)
-			cout << "H = " << h << "\tG = " << g << " \tG+H1 = " << h + g << endl;
-
-		//add childs of current onto stack so we can visit them later.
-		for (int i = NumberOfCities - 1; i >= 0; i--)
-		{
-			if (!DoesVectorContainElement(visited, i) && actions[current.cityID][i] < INT_MAX)
-			{
-				DepthFirstTravelsalStack.push(SearchNode(i, current.cityID));
-			}
-		}
+			cout << "\n\n\nNext fbound = " << fBound << endl;
 	}
+
 	int lastCity = visited[visited.size() - 1].cityID;
 	visited.push_back(SearchNode(lastCity, start));
-
 	return visited;
 }
 
@@ -256,7 +302,9 @@ int main()
 
 	InputParser::ParseData(s, actions, cities, &NumberOfCities);
 
-	std::vector<SearchNode> foundCycle = IDAStarSolver(actions, CalculateMinimalSpaningTreeHeuristics);
+	std::vector<SearchNode> foundCycle = IDAStarSolver(actions, CalculateShortestExitsHeuristic);
+	
+	//std::vector<SearchNode> foundCycle = IDAStarSolver(actions, CalculateMinimalSpaningTreeHeuristics);
 
 	cout << CalculatePathCost(foundCycle, actions);
 	
