@@ -12,6 +12,7 @@ using namespace std;
 vector<string> cities;
 size_t NumberOfCities;
 bool IsLoggingEnabled = true;
+bool ShouldUseMSTHeuristic = false;
 
 
 bool DoesVectorContainElement(std::vector<SearchNode> vector, int element)
@@ -174,17 +175,17 @@ int CalculateMinimalSpaningTreeHeuristics(vector<SearchNode> visited, vector<int
 	return h2;
 }
 
-int CalculatePathCost(const vector<SearchNode>&visited, const vector<vector<int>>& actions)
+int CalculatePathCost(const vector<SearchNode>&visited, const vector<vector<int>>& actions,bool forceLogging=false)
 {
 	int g = 0;
 	for (size_t i = 1; i < visited.size(); i++)
 	{
 		int currentEdgeCost = actions[visited[i].parentCityID][visited[i].cityID];
 		g += currentEdgeCost;
-		if (IsLoggingEnabled)
+		if (IsLoggingEnabled||forceLogging)
 			cout << cities[visited[i-1].cityID] << "---" << currentEdgeCost << "-->";
 	}
-	if (IsLoggingEnabled)
+	if (IsLoggingEnabled||forceLogging)
 	{
 		cout << cities[visited[visited.size() - 1].cityID];
 		cout << endl;
@@ -206,8 +207,8 @@ vector<SearchNode> IDAStarSolver(const vector<vector<int>>& actions,int Calculat
 	while (visited.size() != NumberOfCities)
 	{
 		//statistics
-		int depth = 0;
-		int numberOfNodes = 0;
+		size_t depth = 0;
+		size_t numberOfNodes = 0;
 
 		DepthFirstTravelsalStack = stack<SearchNode>();
 		DepthFirstTravelsalStack.push(SearchNode(start, start));
@@ -301,20 +302,64 @@ vector<SearchNode> IDAStarSolver(const vector<vector<int>>& actions,int Calculat
 	return visited;
 }
 
-
 int main()
 {
+	cout << "----IDA* TSP Solver---- Marcin Szadkowski 301960 Projekt S3 C++\n\n";
+	bool shouldExit = false;
+	char key;
+	string currentOption;
+	string defaultSmallDataPath = "Data/zwykladusmall.txt";
+	string defaultMediumDataPath = "Data/zwykladumedium.txt";
+	string userDefinedDataPath;
+	string selectedDataPath = defaultSmallDataPath;
+
 	vector<vector<int>> actions;
+	std::vector<SearchNode> soultion;
 
-	string s = "Data/zwykladu.txt";
-
-	InputParser::ParseData(s, actions, cities, &NumberOfCities);
-
-	std::vector<SearchNode> foundCycle = IDAStarSolver(actions, CalculateShortestExitsHeuristic);
-	
-	//std::vector<SearchNode> foundCycle = IDAStarSolver(actions, CalculateMinimalSpaningTreeHeuristics);
-
-	cout << CalculatePathCost(foundCycle, actions);
-	
+	cout << "Please select option by pressing proper key. Confirm selection by pressing enter:\n\n";
+	while (!shouldExit)
+	{
+		currentOption = IsLoggingEnabled ? "On" : "Off";
+		cout << "Press 1 for toggle statistics on/off \t\t\t\t\t(Statistics = " << currentOption << ")" << endl;
+		currentOption = ShouldUseMSTHeuristic ? "MinimalSpanningTree" : "ShortestExits";
+		cout << "Press 2 for toggle heuristics MinimalSpanningTree/ShortestExits \t(Heuristics =" << currentOption << ")" << endl;
+		cout << "Press 3 to select small TSP data. \t\t\t\t\t(Path to data file = " << selectedDataPath << ")" << endl;
+		cout << "Press 4 to select medium TSP data.\n";
+		cout << "Press 5 to enter own TSP data file.\n";
+		cout << "Press 6 to run computation.\n";
+		cout << "Press any other key to exit\n";
+		cin >> key;
+		switch (key)
+		{
+		case '1':
+			IsLoggingEnabled = !IsLoggingEnabled;
+			break;
+		case '2':
+			ShouldUseMSTHeuristic = !ShouldUseMSTHeuristic;
+			break;
+		case '3':
+			selectedDataPath = defaultSmallDataPath;
+			break;
+		case '4':
+			selectedDataPath = defaultMediumDataPath;
+			break;
+		case '5':
+			cin.get();
+			cout << "Please enter path to .txt file with your TSP data -\n";
+			getline(cin, userDefinedDataPath);
+			selectedDataPath = userDefinedDataPath;
+			break;
+		case '6':
+			if (InputParser::ParseData(selectedDataPath, actions, cities, &NumberOfCities))
+			{
+				soultion = IDAStarSolver(actions, ShouldUseMSTHeuristic ? CalculateMinimalSpaningTreeHeuristics : CalculateShortestExitsHeuristic);
+				cout << "Found solution! Cycle length = " << CalculatePathCost(soultion, actions, true) << endl << endl;
+			}
+			break;
+		default:
+			shouldExit = true;
+			break;
+		}
+	}
 	return 0;
 }
