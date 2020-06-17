@@ -307,7 +307,6 @@ vector<SearchNode> IDAStarSolver(const vector<vector<int>>& actions,int Calculat
 
 int main()
 {
-	cout << INT_MAX << endl;
 	cout << "----IDA* TSP Solver---- Marcin Szadkowski 301960 Projekt S3 C++\n\n";
 	bool shouldExit = false;
 	char key;
@@ -366,7 +365,14 @@ int main()
 				cout << "Found solution! Cycle length = " << CalculatePathCost(soultion, actions, true) << endl;
 				cout << "Computation time -  " << float(clock() - begin_time) / CLOCKS_PER_SEC << endl;
 				results << "Found solution in " << float(clock() - begin_time) / CLOCKS_PER_SEC << endl;
-				results << "Found solution! Cycle length = " << CalculatePathCost(soultion, actions, true) << endl << endl;
+				results << "Found solution! Cycle length = " << CalculatePathCost(soultion, actions) << endl << endl;
+				for (size_t i = 1; i < soultion.size(); i++)
+				{
+					int currentEdgeCost = actions[soultion[i].parentCityID][soultion[i].cityID];			
+					results << cities[soultion[i - 1].cityID] << "---" << currentEdgeCost << "-->";
+				}
+				results << cities[soultion[soultion.size() - 1].cityID];
+				results << endl;
 			}
 			break;
 		default:
