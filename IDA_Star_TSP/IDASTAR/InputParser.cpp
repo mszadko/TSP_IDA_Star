@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iterator>
 
+using namespace std;
 
 bool InputParser::ParseData(const std::string dataFile, std::vector<std::vector<int>>& actions,std::vector<std::string>& cities,size_t* NumberOfCities)
 {
@@ -24,7 +25,7 @@ bool InputParser::ParseData(const std::string dataFile, std::vector<std::vector<
 		ss >> *NumberOfCities;
 
 
-		actions.clear();
+		actions = std::vector<std::vector<int>>();
 		for (size_t i = 0; i < *NumberOfCities; i++)
 		{
 			actions.push_back(std::vector<int>());
@@ -37,7 +38,7 @@ bool InputParser::ParseData(const std::string dataFile, std::vector<std::vector<
 		//get 2nd line - should be city names separated by ';'
 		getline(dataStream, line);
 		ss = std::istringstream(line);
-		cities.clear();
+		cities = std::vector<std::string>();
 		std::string city;
 		while (getline(ss, city, ';'))
 		{
@@ -51,8 +52,14 @@ bool InputParser::ParseData(const std::string dataFile, std::vector<std::vector<
 			std::istringstream ss(line);
 			int x;
 			ss >> x;
-			actions[index / *NumberOfCities][index % *NumberOfCities] = x;
+			size_t row = index / *NumberOfCities;
+			size_t column = index % *NumberOfCities;
+			actions[row][column] = x;
 			index++;
+			if (index>=*NumberOfCities**NumberOfCities)
+			{
+				break;
+			}
 		}
 		return true;
 	}

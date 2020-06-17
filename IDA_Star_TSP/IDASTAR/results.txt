@@ -1,0 +1,4 @@
+Found solution of first problem in 0.002
+Found solution! Cycle length = 865
+
+Warszawa---135-->Lodz---195-->Katowice---75-->Krakow---120-->Kielce---175-->Lublin---165-->Warszawa
