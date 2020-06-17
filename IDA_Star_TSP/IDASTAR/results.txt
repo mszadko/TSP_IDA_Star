@@ -2,3 +2,7 @@ Found solution of first problem in 0.002
 Found solution! Cycle length = 865
 
 Warszawa---135-->Lodz---195-->Katowice---75-->Krakow---120-->Kielce---175-->Lublin---165-->Warszawa
+Found solution of second problem in 22888.4
+Found solution! Cycle length = 6640
+
+citynum0---290-->citynum1---342-->citynum3---174-->citynum2---69-->citynum4---139-->citynum5---77-->citynum6---118-->citynum7---18-->citynum8---197-->citynum11---69-->citynum10---172-->citynum18---5-->citynum17---12-->citynum16---19-->citynum15---288-->citynum12---23-->citynum14---228-->citynum19---87-->citynum22---76-->citynum25---27-->citynum24---157-->citynum21---77-->citynum23---235-->citynum27---264-->citynum26---329-->citynum30---102-->citynum35---146-->citynum33---33-->citynum32---342-->citynum37---237-->citynum36---190-->citynum34---287-->citynum31---157-->citynum29---296-->citynum28---496-->citynum20---338-->citynum13---87-->citynum9---437-->citynum0
