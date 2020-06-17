@@ -324,65 +324,7 @@ int main()
 	results.open("results.txt");
 
 	clock_t begin_time;
-	ShouldUseMSTHeuristic = true;
-	IsLoggingEnabled = false;
-	if (InputParser::ParseData("Data/zwykladusmall.txt", actions, cities, &NumberOfCities))
-	{
-		begin_time = clock();
-		soultion = IDAStarSolver(actions, ShouldUseMSTHeuristic ? CalculateMinimalSpaningTreeHeuristics : CalculateShortestExitsHeuristic);
-		results << "Found solution of first problem in " << float(clock() - begin_time) / CLOCKS_PER_SEC << endl;
-		results << "Found solution! Cycle length = " << CalculatePathCost(soultion, actions, true) << endl << endl;
-		int g = 0;
-		for (size_t i = 1; i < soultion.size(); i++)
-		{
-			int currentEdgeCost = actions[soultion[i].parentCityID][soultion[i].cityID];
-			g += currentEdgeCost;
-			results << cities[soultion[i - 1].cityID] << "---" << currentEdgeCost << "-->";
-		}
-
-		results << cities[soultion[soultion.size() - 1].cityID];
-		results << endl;
-	}
-	if (InputParser::ParseData("Data/dj38parsed.txt", actions, cities, &NumberOfCities))
-	{
-		begin_time = clock();
-		soultion = IDAStarSolver(actions, ShouldUseMSTHeuristic ? CalculateMinimalSpaningTreeHeuristics : CalculateShortestExitsHeuristic);
-		results << "Found solution of second problem in " << float(clock() - begin_time) / CLOCKS_PER_SEC << endl;
-		results << "Found solution! Cycle length = " << CalculatePathCost(soultion, actions, true) << endl << endl;
-		int g = 0;
-		for (size_t i = 1; i < soultion.size(); i++)
-		{
-			int currentEdgeCost = actions[soultion[i].parentCityID][soultion[i].cityID];
-			g += currentEdgeCost;
-			results << cities[soultion[i - 1].cityID] << "---" << currentEdgeCost << "-->";
-		}
-
-		results << cities[soultion[soultion.size() - 1].cityID];
-		results << endl;
-	}
-	if (InputParser::ParseData("qa194parsed.txt", actions, cities, &NumberOfCities))
-	{
-		begin_time = clock();
-		soultion = IDAStarSolver(actions, ShouldUseMSTHeuristic ? CalculateMinimalSpaningTreeHeuristics : CalculateShortestExitsHeuristic);
-		results << "Found solution of first problem in " << float(clock() - begin_time) / CLOCKS_PER_SEC << endl;
-		results << "Found solution! Cycle length = " << CalculatePathCost(soultion, actions, true) << endl << endl;
-		int g = 0;
-		for (size_t i = 1; i < soultion.size(); i++)
-		{
-			int currentEdgeCost = actions[soultion[i].parentCityID][soultion[i].cityID];
-			g += currentEdgeCost;
-			results << cities[soultion[i - 1].cityID] << "---" << currentEdgeCost << "-->";
-		}
-
-		results << cities[soultion[soultion.size() - 1].cityID];
-		results << endl;
-	}
-
-	results.close();
-
-
-
-	/*
+		
 	cout << "Please select option by pressing proper key. Confirm selection by pressing enter:\n\n";
 	while (!shouldExit)
 	{
@@ -419,14 +361,19 @@ int main()
 		case '6':
 			if (InputParser::ParseData(selectedDataPath, actions, cities, &NumberOfCities))
 			{
+				begin_time = clock();
 				soultion = IDAStarSolver(actions, ShouldUseMSTHeuristic ? CalculateMinimalSpaningTreeHeuristics : CalculateShortestExitsHeuristic);
-				cout << "Found solution! Cycle length = " << CalculatePathCost(soultion, actions, true) << endl << endl;
+				cout << "Found solution! Cycle length = " << CalculatePathCost(soultion, actions, true) << endl;
+				cout << "Computation time -  " << float(clock() - begin_time) / CLOCKS_PER_SEC << endl;
+				results << "Found solution in " << float(clock() - begin_time) / CLOCKS_PER_SEC << endl;
+				results << "Found solution! Cycle length = " << CalculatePathCost(soultion, actions, true) << endl << endl;
 			}
 			break;
 		default:
 			shouldExit = true;
 			break;
 		}
-	}*/
+	}
+	results.close();
 	return 0;
 }
